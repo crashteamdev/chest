@@ -18,6 +18,7 @@ import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -50,7 +51,7 @@ class PaymentListenerTest : AbstractIntegrationTest() {
     @Value("\${chest.payment-topic-name}")
     lateinit var paymentTopicName: String
 
-    @BeforeAll
+    @BeforeEach
     fun setUp() {
         Thread.sleep(1000) // TODO: fix kafka send bug
     }
