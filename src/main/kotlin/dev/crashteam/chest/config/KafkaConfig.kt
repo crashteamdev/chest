@@ -12,6 +12,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.listener.DefaultErrorHandler
 import org.springframework.kafka.listener.RetryingBatchErrorHandler
+import org.springframework.util.backoff.FixedBackOff
 
 @Configuration
 class KafkaConfig {
@@ -41,7 +42,7 @@ class KafkaConfig {
             ConcurrentKafkaListenerContainerFactory()
         factory.consumerFactory = consumerFactory()
         factory.isBatchListener = true
-        factory.setBatchErrorHandler(RetryingBatchErrorHandler())
+        factory.setCommonErrorHandler(DefaultErrorHandler(FixedBackOff()).apply { isAckAfterHandle = false })
         factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL
         return factory
     }
