@@ -1,6 +1,6 @@
 package dev.crashteam.chest
 
-import dev.crashteam.chest.service.WalletNotEnoughMoneyException
+import dev.crashteam.chest.service.error.WalletNotEnoughMoneyException
 import dev.crashteam.chest.service.WalletService
 import dev.crashteam.chest.service.error.DuplicateWalletException
 import org.junit.jupiter.api.Assertions.assertEquals

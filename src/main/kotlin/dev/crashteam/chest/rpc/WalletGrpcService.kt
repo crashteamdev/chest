@@ -3,7 +3,7 @@ package dev.crashteam.chest.rpc
 import com.google.protobuf.Timestamp
 import dev.crashteam.chest.repository.entity.WalletChangeType
 import dev.crashteam.chest.repository.pagination.ContinuationTokenService
-import dev.crashteam.chest.service.WalletNotEnoughMoneyException
+import dev.crashteam.chest.service.error.WalletNotEnoughMoneyException
 import dev.crashteam.chest.service.WalletService
 import dev.crashteam.chest.service.error.DuplicateWalletException
 import dev.crashteam.chest.wallet.*

@@ -22,6 +22,7 @@
         <testcontainers.version>1.16.3</testcontainers.version>
         <hibernate-types.version>2.15.1</hibernate-types.version>
         <awaitility.version>4.2.0</awaitility.version>
+        <schedlock.version>4.36.0</schedlock.version>
     </properties>
     <dependencies>
         <!-- Spring -->
@@ -106,18 +107,28 @@
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
         </dependency>
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-spring</artifactId>
+            <version>${schedlock.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-provider-jdbc-template</artifactId>
+            <version>${schedlock.version}</version>
+        </dependency>
 
 
         <!-- CrashTeam -->
         <dependency>
             <groupId>dev.crashteam</groupId>
             <artifactId>chest-proto</artifactId>
-            <version>0.0.1</version>
+            <version>0.0.6</version>
         </dependency>
         <dependency>
             <groupId>dev.crashteam</groupId>
             <artifactId>payment-proto</artifactId>
-            <version>0.0.8</version>
+            <version>0.0.12</version>
         </dependency>
 
         <!-- Runtime -->

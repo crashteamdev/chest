@@ -25,7 +25,8 @@ abstract class AbstractIntegrationTest {
                 "spring.kafka.bootstrap-servers=${KafkaContainerExtension.kafka.bootstrapServers}",
                 "spring.datasource.url=${PostgresqlContainerExtension.postgresql.jdbcUrl}",
                 "spring.datasource.username=${PostgresqlContainerExtension.postgresql.username}",
-                "spring.datasource.password=${PostgresqlContainerExtension.postgresql.password}"
+                "spring.datasource.password=${PostgresqlContainerExtension.postgresql.password}",
+                "chest.event-poller-enabled=false"
             ).applyTo(applicationContext.environment)
         }
     }

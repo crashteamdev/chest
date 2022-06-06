@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit
 class PaymentListenerTest : AbstractIntegrationTest() {
 
     @Autowired
-    lateinit var kafkaTemplate: KafkaTemplate<String, ByteArray>
+    lateinit var paymentKafkaTemplate: KafkaTemplate<String, ByteArray>
 
     @Autowired
     lateinit var walletPaymentRepository: WalletPaymentRepository
@@ -62,7 +62,7 @@ class PaymentListenerTest : AbstractIntegrationTest() {
         val userId = UUID.randomUUID().toString()
         val paymentEvent = PaymentEvent.newBuilder().apply {
             createdAt = Timestamp.newBuilder().setSeconds(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)).build()
-            eventSource = PaymentEvent.EventSource.newBuilder().setUserId(userId).build()
+            eventSource = PaymentEvent.EventSource.newBuilder().setPaymentId(paymentId).build()
             payload = PaymentEvent.EventPayload.newBuilder().apply {
                 val paymentChange = PaymentChange.newBuilder().apply {
                     this.paymentCreated = PaymentCreated.newBuilder().apply {
@@ -83,7 +83,7 @@ class PaymentListenerTest : AbstractIntegrationTest() {
 
         // When
         val producerRecord = ProducerRecord(paymentTopicName, paymentId, paymentEvent.toByteArray())
-        kafkaTemplate.send(producerRecord).get()
+        paymentKafkaTemplate.send(producerRecord).get()
         val walletPayment = await.atMost(60, TimeUnit.SECONDS)
             .untilNotNull {
                 walletPaymentRepository.findByPaymentId(paymentId)
@@ -104,7 +104,6 @@ class PaymentListenerTest : AbstractIntegrationTest() {
         @Value("\${chest.payment-topic-name}")
         lateinit var paymentTopicName: String
 
-        @Bean
         fun producerFactory(): ProducerFactory<String, ByteArray> {
             val configProps: MutableMap<String, Any> = HashMap()
             configProps[ProducerConfig.BOOTSTRAP_SERVERS_CONFIG] = KafkaContainerExtension.kafka.bootstrapServers
@@ -114,7 +113,7 @@ class PaymentListenerTest : AbstractIntegrationTest() {
         }
 
         @Bean
-        fun kafkaTemplate(): KafkaTemplate<String, ByteArray> {
+        fun paymentKafkaTemplate(): KafkaTemplate<String, ByteArray> {
             AdminClient.create(
                 mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to KafkaContainerExtension.kafka.bootstrapServers)
             ).use {

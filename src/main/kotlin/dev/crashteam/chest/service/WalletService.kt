@@ -1,17 +1,22 @@
 package dev.crashteam.chest.service
 
+import com.google.protobuf.Timestamp
+import dev.crashteam.chest.event.WalletBalanceChange
+import dev.crashteam.chest.event.WalletChange
+import dev.crashteam.chest.event.WalletCreated
+import dev.crashteam.chest.event.WalletEvent
+import dev.crashteam.chest.repository.EventMessageOutRepository
 import dev.crashteam.chest.repository.WalletHistoryRepository
 import dev.crashteam.chest.repository.WalletPaymentRepository
 import dev.crashteam.chest.repository.WalletRepository
-import dev.crashteam.chest.repository.entity.WalletChangeType
-import dev.crashteam.chest.repository.entity.WalletEntity
-import dev.crashteam.chest.repository.entity.WalletHistoryEntity
-import dev.crashteam.chest.repository.entity.WalletPayment
+import dev.crashteam.chest.repository.entity.*
 import dev.crashteam.chest.repository.pagination.ContinuationToken
 import dev.crashteam.chest.repository.pagination.Page
 import dev.crashteam.chest.service.error.DuplicateWalletException
+import dev.crashteam.chest.service.error.WalletNotEnoughMoneyException
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
+import java.time.Instant
 import java.time.LocalDateTime
 import java.util.*
 import javax.transaction.Transactional
@@ -21,10 +26,15 @@ class WalletService(
     private val walletRepository: WalletRepository,
     private val walletHistoryRepository: WalletHistoryRepository,
     private val walletPaymentRepository: WalletPaymentRepository,
+    private val eventMessageOutRepository: EventMessageOutRepository
 ) {
 
+    @Transactional
     fun createWallet(userId: String): WalletEntity {
         log.info { "Create wallet for userId=$userId" }
+        if (walletRepository.findByUserId(userId) != null) {
+            throw DuplicateWalletException("Trying to save duplicate wallet for userId=$userId")
+        }
         val walletEntity = WalletEntity().apply {
             this.id = UUID.randomUUID()
             this.amount = 0
@@ -32,10 +42,34 @@ class WalletService(
             this.blocked = false
             this.createdAt = LocalDateTime.now()
         }
-        if (walletRepository.findByUserId(userId) != null) {
-            throw DuplicateWalletException("Trying to save duplicate wallet for userId=$userId")
+        val savedWalletEntity = walletRepository.save(walletEntity)
+        val walletEvent = WalletEvent.newBuilder().apply {
+            this.eventId = UUID.randomUUID().toString()
+            val now = Instant.now()
+            val timestampNow = Timestamp.newBuilder().setSeconds(now.epochSecond).setNanos(now.nano).build()
+            this.createdAt = timestampNow
+            this.eventSource = WalletEvent.EventSource.newBuilder().apply {
+                this.walletId = savedWalletEntity.id.toString()
+            }.build()
+            this.payload = WalletEvent.EventPayload.newBuilder().apply {
+                this.walletChange = WalletChange.newBuilder().apply {
+                    this.userId = userId
+                    this.walletCreated = WalletCreated.newBuilder().apply {
+                        this.createdAt = timestampNow
+                        this.balance = savedWalletEntity.amount!!
+                    }.build()
+                }.build()
+            }.build()
+        }.build()
+        val eventMessageOut = EventMessageOut().apply {
+            this.aggregateId = savedWalletEntity.id.toString()
+            this.aggregateType = "WalletEvent"
+            this.type = "WalletCreateEvent"
+            this.payload = walletEvent.toByteArray()
         }
-        return walletRepository.save(walletEntity)
+        eventMessageOutRepository.save(eventMessageOut)
+
+        return savedWalletEntity
     }
 
     fun getUserWalletByUser(userId: String): WalletEntity? {
@@ -65,6 +99,31 @@ class WalletService(
             this.type = WalletChangeType.withdrawal
         }
         walletHistoryRepository.save(walletHistoryEntity)
+        val walletEvent = WalletEvent.newBuilder().apply {
+            this.eventId = UUID.randomUUID().toString()
+            val now = Instant.now()
+            val timestampNow = Timestamp.newBuilder().setSeconds(now.epochSecond).setNanos(now.nano).build()
+            this.createdAt = timestampNow
+            this.eventSource = WalletEvent.EventSource.newBuilder().apply {
+                this.walletId = walletId.toString()
+            }.build()
+            this.payload = WalletEvent.EventPayload.newBuilder().apply {
+                this.walletChange = WalletChange.newBuilder().apply {
+                    this.userId = userId
+                    this.walletBalanceChange = WalletBalanceChange.newBuilder().apply {
+                        this.amount = walletAmount
+                        this.type = WalletBalanceChange.BalanceChangeType.withdrawal
+                    }.build()
+                }.build()
+            }.build()
+        }.build()
+        val eventMessageOut = EventMessageOut().apply {
+            this.aggregateId = walletId.toString()
+            this.aggregateType = "WalletEvent"
+            this.type = "WalletBalanceChangeEvent"
+            this.payload = walletEvent.toByteArray()
+        }
+        eventMessageOutRepository.save(eventMessageOut)
 
         return walletRepository.findById(walletId).orElse(null)
     }
@@ -81,6 +140,31 @@ class WalletService(
             this.type = WalletChangeType.replenishment
         }
         walletHistoryRepository.save(walletHistoryEntity)
+        val walletEvent = WalletEvent.newBuilder().apply {
+            this.eventId = UUID.randomUUID().toString()
+            val now = Instant.now()
+            val timestampNow = Timestamp.newBuilder().setSeconds(now.epochSecond).setNanos(now.nano).build()
+            this.createdAt = timestampNow
+            this.eventSource = WalletEvent.EventSource.newBuilder().apply {
+                this.walletId = walletId.toString()
+            }.build()
+            this.payload = WalletEvent.EventPayload.newBuilder().apply {
+                this.walletChange = WalletChange.newBuilder().apply {
+                    this.userId = userId
+                    this.walletBalanceChange = WalletBalanceChange.newBuilder().apply {
+                        this.amount = amount
+                        this.type = WalletBalanceChange.BalanceChangeType.replenishment
+                    }.build()
+                }.build()
+            }.build()
+        }.build()
+        val eventMessageOut = EventMessageOut().apply {
+            this.aggregateId = walletId.toString()
+            this.aggregateType = "WalletEvent"
+            this.type = "WalletBalanceChangeEvent"
+            this.payload = walletEvent.toByteArray()
+        }
+        eventMessageOutRepository.save(eventMessageOut)
 
         return walletRepository.findById(walletId).orElse(null)
     }

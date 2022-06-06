@@ -1,23 +1,34 @@
 package dev.crashteam.chest.handler
 
+import dev.crashteam.chest.repository.EventLogRepository
 import dev.crashteam.chest.repository.WalletPaymentRepository
+import dev.crashteam.chest.repository.entity.EventLog
 import dev.crashteam.chest.service.WalletService
 import dev.crashteam.payment.PaymentEvent
 import dev.crashteam.payment.PaymentStatus
+import mu.KotlinLogging
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import javax.transaction.Transactional
 
+private val log = KotlinLogging.logger {}
+
 @Component
 class PaymentChangeEventHandler(
     private val walletService: WalletService,
-    private val walletPaymentRepository: WalletPaymentRepository
+    private val walletPaymentRepository: WalletPaymentRepository,
+    private val eventLogRepository: EventLogRepository,
 ) : PaymentEventHandler {
 
     @Transactional
     override fun handle(paymentEvents: List<PaymentEvent>) {
         for (paymentEvent in paymentEvents) {
+            val eventLog = eventLogRepository.findById(paymentEvent.eventId).orElse(null)
+            if (eventLog != null) {
+                log.info { "Event already processed ${paymentEvent.eventId}. Ignore it" }
+                continue
+            }
             val paymentChange = paymentEvent.payload.paymentChange
             if (paymentChange.hasPaymentCreated()) {
                 val paymentCreated = paymentChange.paymentCreated
@@ -57,6 +68,11 @@ class PaymentChangeEventHandler(
                     paymentRefund.description
                 )
             }
+            val newEventLog = EventLog().apply {
+                eventId = paymentEvent.eventId
+                timeOfReceiving = LocalDateTime.now()
+            }
+            eventLogRepository.save(newEventLog)
         }
     }
 

@@ -50,6 +50,8 @@ spring:
 
 chest:
   payment-topic-name: db_payment_change # <message type>.<dataset name>.<data name>
+  wallet-topic-name: db_wallet_change
+  event-poller-enabled: true
 
 grpc:
   shutdownGrace: 30
