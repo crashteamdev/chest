@@ -1,6 +1,6 @@
 package dev.crashteam.chest.outbox
 
-import dev.crashteam.chest.event.WalletEvent
+import dev.crashteam.chest.event.WalletCudEvent
 import dev.crashteam.chest.repository.EventMessageOutRepository
 import mu.KotlinLogging
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -23,7 +23,7 @@ class EventOutMessagePublisher(
     @Transactional
     fun publishWalletEvent() {
         val eventMessage = eventMessageOutRepository.deleteAndGetFirstEventLog() ?: return
-        val walletEvent = WalletEvent.parseFrom(eventMessage.payload)
+        val walletEvent = WalletCudEvent.parseFrom(eventMessage.payload)
         log.info { "Publish wallet eventId=${walletEvent.eventId}; walletId=${walletEvent.eventSource.walletId}" }
         val producerRecord =
             ProducerRecord(walletTopicName, walletEvent.eventSource.walletId, walletEvent.toByteArray())

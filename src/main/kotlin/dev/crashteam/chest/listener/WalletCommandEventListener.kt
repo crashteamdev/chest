@@ -1,7 +1,7 @@
 package dev.crashteam.chest.listener
 
-import dev.crashteam.chest.handler.payment.PaymentEventHandler
-import dev.crashteam.payment.PaymentEvent
+import dev.crashteam.chest.event.WalletCommandEvent
+import dev.crashteam.chest.handler.wallet.WalletCommandEventHandler
 import mu.KotlinLogging
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
@@ -13,14 +13,14 @@ import org.springframework.stereotype.Service
 private val log = KotlinLogging.logger {}
 
 @Service
-class PaymentEventListener(
-    private val paymentEventHandler: List<PaymentEventHandler>
+class WalletCommandEventListener(
+    private val walletCommandEventHandler: List<WalletCommandEventHandler>
 ) {
 
     @KafkaListener(
-        topics = ["\${chest.payment-topic-name}"],
+        topics = ["\${chest.wallet-command-topic-name}"],
         autoStartup = "true",
-        containerFactory = "paymentListenerContainerFactory"
+        containerFactory = "walletCommandListenerContainerFactory"
     )
     fun receive(
         @Payload messages: List<ByteArray>,
@@ -31,8 +31,8 @@ class PaymentEventListener(
         try {
             List(messages.size) { i ->
                 log.info { "Received message with partition-offset=${partitions[i].toString() + "-" + offsets[i]}" }
-                PaymentEvent.parseFrom(messages[i])
-            }.groupBy { entry -> paymentEventHandler.find { it.isHandle(entry) } }
+                WalletCommandEvent.parseFrom(messages[i])
+            }.groupBy { entry -> walletCommandEventHandler.find { it.isHandle(entry) } }
                 .forEach { (handler, entries) ->
                     handler?.handle(entries)
                 }
@@ -41,7 +41,6 @@ class PaymentEventListener(
             log.error(e) { "Exception during handling KE fetch events" }
             throw e
         }
-
     }
 
 }

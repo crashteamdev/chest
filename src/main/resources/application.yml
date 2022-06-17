@@ -51,6 +51,8 @@ spring:
 chest:
   payment-topic-name: db_payment_change # <message type>.<dataset name>.<data name>
   wallet-topic-name: db_wallet_change
+  wallet-command-topic-name: be_wallet_command
+  wallet-command-response-topic-name: be_wallet_command_response
   event-poller-enabled: true
 
 grpc:

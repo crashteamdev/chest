@@ -1,4 +1,4 @@
-package dev.crashteam.chest.handler
+package dev.crashteam.chest.handler.payment
 
 import dev.crashteam.chest.repository.EventLogRepository
 import dev.crashteam.chest.repository.WalletPaymentRepository

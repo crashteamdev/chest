@@ -123,7 +123,7 @@
         <dependency>
             <groupId>dev.crashteam</groupId>
             <artifactId>chest-proto</artifactId>
-            <version>0.0.6</version>
+            <version>0.0.9</version>
         </dependency>
         <dependency>
             <groupId>dev.crashteam</groupId>

@@ -1,10 +1,7 @@
 package dev.crashteam.chest.service
 
 import com.google.protobuf.Timestamp
-import dev.crashteam.chest.event.WalletBalanceChange
-import dev.crashteam.chest.event.WalletChange
-import dev.crashteam.chest.event.WalletCreated
-import dev.crashteam.chest.event.WalletEvent
+import dev.crashteam.chest.event.*
 import dev.crashteam.chest.repository.EventMessageOutRepository
 import dev.crashteam.chest.repository.WalletHistoryRepository
 import dev.crashteam.chest.repository.WalletPaymentRepository
@@ -43,15 +40,15 @@ class WalletService(
             this.createdAt = LocalDateTime.now()
         }
         val savedWalletEntity = walletRepository.save(walletEntity)
-        val walletEvent = WalletEvent.newBuilder().apply {
+        val walletEvent = WalletCudEvent.newBuilder().apply {
             this.eventId = UUID.randomUUID().toString()
             val now = Instant.now()
             val timestampNow = Timestamp.newBuilder().setSeconds(now.epochSecond).setNanos(now.nano).build()
             this.createdAt = timestampNow
-            this.eventSource = WalletEvent.EventSource.newBuilder().apply {
+            this.eventSource = WalletCudEvent.EventSource.newBuilder().apply {
                 this.walletId = savedWalletEntity.id.toString()
             }.build()
-            this.payload = WalletEvent.EventPayload.newBuilder().apply {
+            this.payload = WalletCudEvent.EventPayload.newBuilder().apply {
                 this.walletChange = WalletChange.newBuilder().apply {
                     this.userId = userId
                     this.walletCreated = WalletCreated.newBuilder().apply {
@@ -99,15 +96,15 @@ class WalletService(
             this.type = WalletChangeType.withdrawal
         }
         walletHistoryRepository.save(walletHistoryEntity)
-        val walletEvent = WalletEvent.newBuilder().apply {
+        val walletEvent = WalletCudEvent.newBuilder().apply {
             this.eventId = UUID.randomUUID().toString()
             val now = Instant.now()
             val timestampNow = Timestamp.newBuilder().setSeconds(now.epochSecond).setNanos(now.nano).build()
             this.createdAt = timestampNow
-            this.eventSource = WalletEvent.EventSource.newBuilder().apply {
+            this.eventSource = WalletCudEvent.EventSource.newBuilder().apply {
                 this.walletId = walletId.toString()
             }.build()
-            this.payload = WalletEvent.EventPayload.newBuilder().apply {
+            this.payload = WalletCudEvent.EventPayload.newBuilder().apply {
                 this.walletChange = WalletChange.newBuilder().apply {
                     this.userId = userId
                     this.walletBalanceChange = WalletBalanceChange.newBuilder().apply {
@@ -140,15 +137,15 @@ class WalletService(
             this.type = WalletChangeType.replenishment
         }
         walletHistoryRepository.save(walletHistoryEntity)
-        val walletEvent = WalletEvent.newBuilder().apply {
+        val walletEvent = WalletCudEvent.newBuilder().apply {
             this.eventId = UUID.randomUUID().toString()
             val now = Instant.now()
             val timestampNow = Timestamp.newBuilder().setSeconds(now.epochSecond).setNanos(now.nano).build()
             this.createdAt = timestampNow
-            this.eventSource = WalletEvent.EventSource.newBuilder().apply {
+            this.eventSource = WalletCudEvent.EventSource.newBuilder().apply {
                 this.walletId = walletId.toString()
             }.build()
-            this.payload = WalletEvent.EventPayload.newBuilder().apply {
+            this.payload = WalletCudEvent.EventPayload.newBuilder().apply {
                 this.walletChange = WalletChange.newBuilder().apply {
                     this.userId = userId
                     this.walletBalanceChange = WalletBalanceChange.newBuilder().apply {

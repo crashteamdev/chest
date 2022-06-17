@@ -52,7 +52,7 @@ class PaymentListenerTest : AbstractIntegrationTest() {
 
     @BeforeEach
     fun setUp() {
-        Thread.sleep(1000) // TODO: fix kafka send bug
+        Thread.sleep(2000) // TODO: fix kafka send bug
     }
 
     @Test
