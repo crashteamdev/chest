@@ -30,7 +30,7 @@ class WalletCommandEventListener(
     ) {
         try {
             List(messages.size) { i ->
-                log.info { "Received message with partition-offset=${partitions[i].toString() + "-" + offsets[i]}" }
+                log.info { "Received WalletCommandEvent message with partition-offset=${partitions[i].toString() + "-" + offsets[i]}" }
                 WalletCommandEvent.parseFrom(messages[i])
             }.groupBy { entry -> walletCommandEventHandler.find { it.isHandle(entry) } }
                 .forEach { (handler, entries) ->

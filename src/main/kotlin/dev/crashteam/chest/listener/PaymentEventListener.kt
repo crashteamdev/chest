@@ -30,7 +30,7 @@ class PaymentEventListener(
     ) {
         try {
             List(messages.size) { i ->
-                log.info { "Received message with partition-offset=${partitions[i].toString() + "-" + offsets[i]}" }
+                log.info { "Received PaymentEvent message with partition-offset=${partitions[i].toString() + "-" + offsets[i]}" }
                 PaymentEvent.parseFrom(messages[i])
             }.groupBy { entry -> paymentEventHandler.find { it.isHandle(entry) } }
                 .forEach { (handler, entries) ->

@@ -82,10 +82,10 @@ class WalletService(
     @Transactional
     fun decreaseWalletAmount(walletId: UUID, amount: Long, description: String): WalletEntity? {
         log.info { "Decrease wallet amount. walletId=$walletId; amount=$amount" }
-        val wallet = walletRepository.findById(walletId).orElse(null)
+        val wallet = walletRepository.findByWalletIdWithLock(walletId)
         val walletAmount = wallet?.amount ?: 0
         if (walletAmount <= 0 || (walletAmount - amount) < 0) {
-            throw WalletNotEnoughMoneyException("Not enough money on wallet. walletId=${wallet.id}; userId=${wallet.userId}; amount=${wallet.amount}")
+            throw WalletNotEnoughMoneyException("Not enough money on wallet. walletId=${wallet?.id}; userId=${wallet?.userId}; amount=${wallet?.amount}")
         }
         walletRepository.updateAmountWithdrawalByWalletId(walletId, amount)
         val walletHistoryEntity = WalletHistoryEntity().apply {
