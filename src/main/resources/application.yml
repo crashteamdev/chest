@@ -1,0 +1,59 @@
+server:
+  port: 8080
+
+management:
+  security:
+    flag: false
+  server:
+    port: 8025
+  metrics:
+    prometheus:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+logging:
+  level:
+    "liquibase": info
+
+spring:
+  application:
+    name: '@project.name@'
+    output:
+      ansi:
+        enabled: always
+  kafka:
+    bootstrap-servers: localhost:9092
+  datasource:
+    url: ${db.pg.url}
+    username: ${db.pg.user}
+    password: ${db.pg.password}
+  liquibase:
+    enabled: true
+    change-log: "classpath:db/changelog/db.pg.changelog-main.yml"
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+          batch_size: 20
+    database-platform: org.hibernate.dialect.PostgreSQL95Dialect
+
+chest:
+  payment-topic-name: db_payment_change # <message type>.<dataset name>.<data name>
+  wallet-topic-name: db_wallet_change
+  wallet-command-topic-name: be_wallet_command
+  wallet-command-response-topic-name: be_wallet_command_response
+  event-poller-enabled: true
+
+grpc:
+  shutdownGrace: 30
